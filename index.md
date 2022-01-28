@@ -1,1 +1,1 @@
-[Lab 1](./l1.html)
+[Lab 1](./l1/l1.html)
