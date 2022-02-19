@@ -4,14 +4,34 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ a4c0845e-7eb4-11ec-04c2-53b79fed85b9
-begin 
-	using Plots
-	using PrettyTables
-	using PlutoUI
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
 end
 
-# ╔═╡ e7e048e1-d8fa-497e-9607-85f7230d54cc
+# ╔═╡ 6d6d5bb3-72ff-4aad-a433-152b071960c7
+begin
+	using PlutoUI
+	using Plots
+	using HypertextLiteral
+end
+
+# ╔═╡ f8007b46-90f3-11ec-3ac2-ad23e19cad09
+html"""
+<h1 style="text-align:center">Study of Lattices</h1>
+<div style="text-align:center">
+<p style="font-weight:bold; font-size: 35px; font-variant: small-caps; margin: 0px">PHY412: Lab 2</p>
+<p style="font-size: 30px; font-variant: small-caps; margin: 0px">Dhruva Sambrani</p>
+<p style="font-size: 20px;">Department of Physics, IISER Mohali</p>
+</div>
+"""
+
+# ╔═╡ 5fbd97af-175b-4fc2-99c8-d5dbe7d81db6
 html"""<style>
 pluto-helpbox {
 	display: none;
@@ -22,235 +42,253 @@ pluto-logs-container{
 </style>
 <script>document.body.classList.add("disable_ui")</script>"""
 
-# ╔═╡ 0c0e0353-0e58-4ee4-9a94-614a9cd6d271
-html"""
-<h1 style="text-align:center">Study of Sandpiles</h1>
-<div style="text-align:center">
-<p style="font-weight:bold; font-size: 35px; font-variant: small-caps; margin: 0px">PHY412: Lab 1</p>
-<p style="font-size: 30px; font-variant: small-caps; margin: 0px">Dhruva Sambrani</p>
-<p style="font-size: 20px;">Department of Physics, IISER Mohali</p>
-</div>
-"""
-
-# ╔═╡ 1466c3d4-8f4b-495c-a82b-f3418cd46c9c
+# ╔═╡ 5298d858-e68f-4208-9eaa-a81a91e2e555
 TableOfContents(aside=false)
 
-# ╔═╡ 28aaa0f9-4f77-46bb-a6fe-265661bfa7ae
+# ╔═╡ 6b54dde7-8e54-4a15-8c78-b0062c006424
 md"""
 # Aim
 
-To study the behaviour of Sandpiles and measure the angle of repose of different materials with varying base radius
+1. To study lattice properties via analogy of electrical oscillators.
 """
 
-# ╔═╡ 87e93bf9-a530-4334-9cfa-57ec28915786
+# ╔═╡ 011d33b6-328b-4dc7-95e1-38f730352118
 md"""
 # Introduction
 
-Some systems to show critical behaviour in the absence of any tuning parameter and this is called Self-Organised Criticality (SOC). Unlike most systems, where some tuning parameter can be varied to a phase transition, SOC is able to do it without external influences.
+Most physical properties of any solid is given by its inter-molecular structure, since it forms the basis of a solid's existance. This structure often has a well-defined repeating structure known as a lattice, and this also heavily simplifies our analysis since the equations of dynamics are highly symmetric. Particularly, solids will have a state which is a minima at equilibrium. At this point, we can assume the intermolecular attraction as purely quadratic. Hence, the hamiltonian of this system is that of the Simple Harmonic Oscillator - 
 
-Bak, Tang and Wiesenfeld introduced a model called the Sandpile that shows SOC. While real sandpiles don't always show SOC, some experiments do show it. For larger ratios of sand particle size to disk base radius the avalanche size has a powerlaw scaling, and for small values, the avalanche size is constant.
+$$\mathcal{H} = \frac{1}{2}m\dot{x}^2 - \frac{1}{2}kx^2$$
 
-We try and make the apparatus in given in the experimental demonstrations of SOC and use it to measure the Angle of Repose of the pile at the point of criticality.  Angle of Repose of is a property of the base material and pile material. The provided sources do not explicitly indicate any relation between base radius and angle of repose. The angle of repose is given by
+Where $x$ is displacement from the minima, $p$ and $m$ are the momentum and mass of the atom, and $k$ is the "stiffness constant".
 
-$$\theta = \arctan\left(\frac{h}{r}\right)$$
+# Electric Analogue
 
-where $h$ is the height of the pile and $r$ is the radius of the base.
+Now, consider the following LC circuit:
 """
 
-# ╔═╡ 99bbe997-bcab-40bc-b490-3927df0fc32c
+# ╔═╡ e0b5e28e-cdd1-4fa6-9573-6408b5143130
+htl"""<div style="text-align: center">$(LocalResource("./02-19-01-53.png"))</div>"""
+
+# ╔═╡ 4a591144-8197-4fa8-b21b-fd19047e7827
 md"""
-# Experimental Setup
+The hamiltonian of this system is:
 
-To collect the above data, we need to set up a method such that 
-1. A disk of variable size is elevated
-2. "Sand" can be poured slowly at the center of the of the disk
-3. The height of the pile at its center can be measured without disturbing it
+$$\mathcal{H} = \frac{1}{2}L\dot{Q}^2 -\frac{1}{2}\frac{Q^2}{C}$$
 
-The main challenge is to measure the height at the center without specialized measuring devices. The following methods were tried.
+Hence, this is exactly the same Hamiltonian as the previous SHO system, and hence will have the same equations of "motion". Hence, we can draw the analogy in the following way:
 
-1. A pin of negligible radius(compared to disk) was inserted carefully along the axis of the pile at the time of measurement. A slight marking was made on the pin where the pile ended and the distance from the marking to the tip was measured
-2. A knitting needle was held approximately perpendicular to the axis of the pile and its distance from the gorund was measured on both sides. The height of the pile would then be the average of the 2 heights as the needle is assumed to be a straight line
-3. A video would be recorded of the pile and the height could be measured digitally against a reference.
-4. A string is tied parallel to the axis of the disk before sand is poured. During measurement, the string is marked upto where the pile covered, and this distance is measured.
+$$\begin{aligned}
+L &\iff m\\
+1/C &\iff k
+\end{aligned}$$
 
-## The issue of measurement
-
-In Method 1, when the pin is pushed into the pile, it slightly disturbs the tip, reducing the height by approximately 2 mm each time. However, this method was highly accurate and errors were within Least Count. But due to the lack of precision and the inability to measure the height before avalanche(as the disturbance would set it off), this method was discarded.
-
-In Method 2, the reading varied wildly, by approximately 5-6mm, which was not acceptable. This could be due to the fact that the center of the pile was not at the center of the knitting needle, and that the needle was not perfectly straight. Other methods which employ a similar perpendicular arrangement such as Method 3 also face a similar issue of not being able to guarantee perpendicularity, nor a measurable error of the same. Hence, both were rejected.
-
-In Method 4, there is a chance that the presence of the string may alter avalanche behaviour. However, with a kite string, clear avalanches were observed, and pile heights were about +2 mm of Method 1, which was the approximate disturbance created by the pin.
-
-## Other setup
-
-To elevate the disk, a paint bottle was kept within a plate. The paint bottle also kept the string taut by providing a weight.
+This analogy now allows us to easily measure the responses of an electrical system and gain knowledge about a mechanical system which is often harder to study directly.
 """
 
-# ╔═╡ 596b51d1-5f7e-44f4-8b03-261b8ced4486
-LocalResource("./setup.jpeg")
+# ╔═╡ 336cf5b9-ad1b-403d-a008-37673b792121
+md"""# Monoatomic Chain
 
-# ╔═╡ 2b756fd7-8364-464b-89c7-1e7ccbc1d58e
+In a Monoatomic chain, all atoms are identical and hence thier masses and interatomic forces are equal. By our analogy, we can study the following LC Chain
+"""
+
+# ╔═╡ b513b2b0-9356-4ba9-b4a0-b23e1c3b7db5
+htl"""<div style="text-align: center">$(LocalResource("./02-19-02-06.png"))</div>"""
+
+# ╔═╡ fd4d1b64-56b1-40c8-a079-4aebef3ee919
 md"""
-# Observations - No underlying structure
+## Solving for $Q_n(t)$
+Assuming a charge $Q_n$ dissipating through the $n$th inductor, we get
+
+$$\ddot Q_n = \frac{1}{LC}(2Q_n - Q_{n-1} - Q_{n+1})$$
+
+An ansatz which satisfies this differeential equation is 
+
+$$Q_n(t) = Q_0e^{i (n\theta - \omega t)}$$
 """
 
-# ╔═╡ 7384d70c-3e01-4693-b892-34b1fb5610f1
+# ╔═╡ a931add1-2b7f-44ad-a504-476a26e4442d
 md"""
-## Heights
+## Dispersion Relations
 
-1. All heights and diameters are in mm.
-2. All readings where "After avalanche" is equal to "Before Avalanche", the readings are for after avalanche. Before avalanche readings were not taken either because there was no definitive avalanche as in the case of mustard, or because avalanche difference was too small, as in the case of sooji in 28mm diameter.
+From the ansatz, we see 
+
+$\ddot{Q_n} = -ω^2Q_n$
+
+Also, the charge on capacitor $n$, $q_n = Q_n - Q_{n+1}$, and the potential across capacitor $n$ is $C(Q_n-Q_{n+1})$ and across inductor $n$ is $L\ddot{Q}$.
+
+Hence, 
+
+$$L\ddot{Q} = C(q_{n-1} - q_{n}) \implies \omega^2 = \frac{4}{LC} \sin^2\frac{\theta}{2}$$
 """
 
-# ╔═╡ b70d27ba-393d-41f8-a7bf-2b030d285c86
-begin 
-	sooji_b   = [10.333, 21.333, 27]
-	sooji_a   = [10.333, 17.666, 25]
-	rice_b    = [9,      15.66,  24]
-	rice_a    = [9,      15,     24]
-	mustard_b = [5,      9.333,  16]
-	mustard_a = [5,      9.333,  16]
-	diameters = [28, 54, 80]
-end;
+# ╔═╡ 1d9f9017-19ea-4741-9370-4ac7461139ab
+md"""
+### Plotting the Dispersion Graph
+"""
 
-# ╔═╡ 534ab8c7-e649-4057-ac4b-ae7e765cb3d6
-pretty_table(HTML, hcat(diameters, sooji_a, rice_a, mustard_a, sooji_b, rice_b, mustard_b), header=["Diameters", "Sooji After", "Rice After", "Mustard After", "Sooji Before", "Rice Before", "Mustard Before"], header_alignment=:c, alignment=:c)
+# ╔═╡ ec59de0c-0ec2-4451-8cc6-0fdc7435c70f
+monoatomic(θ, L, C) = √(4/L/C * (sin(θ/2))^2)
 
-# ╔═╡ 38d14188-dd3e-4b80-bdc7-bc71d9d8c888
+# ╔═╡ dde4b81d-99cd-4adf-a44f-ec00e35cb460
+md"""
+## Analogues with the Mechanical System
+
+$$\begin{aligned}
+L &\iff m\\
+1/C &\iff k\\
+ka &\iff \theta
+\end{aligned}$$
+
+"""
+
+# ╔═╡ 9ab8f3da-a182-482f-ab7e-0c1281804651
+md"""
+# Diatomic Chain
+
+In such a system, technically both $m$ and $k$ change, however, we can assume that $m$ is held constant. By our analogy, we can study the following LC Chain
+"""
+
+# ╔═╡ 17557d64-bef9-4626-9362-fab98c5530dc
+htl"""<div style="text-align: center">$(LocalResource("./02-19-02-48.png"))</div>"""
+
+# ╔═╡ c1cfaf8f-0547-4a1f-879d-dda0f4e9fecb
+md"""
+## Solving for $Q_n$
+
+Following a similar process as before,
+
+$$L \ddot{Q}_{2n+1} = \frac{Q_{2n}}{C} - \frac{Q_{2n+1}}{C_1}$$
+$$L \ddot{Q}_{2n} = \frac{Q_{2n-1}}{C_1} - \frac{Q_{2n}}{C}$$
+
+with ansatz
+
+$$Q_{2n} = Q_{0_e}e^{i (2n\theta -\omega t)}$$
+$$Q_{2n+1} = Q_{0_o}e^{i [(2n+1)\theta -\omega t]}$$
+"""
+
+# ╔═╡ b6215da1-e027-4c2a-a093-3e30041f4f5f
+md"""
+## Finding the dispersion relations
+
+Inserting the ansatz back into the equations, we get 
+
+$\begin{bmatrix}
+-L\omega^2 + 1/C + 1/C_1 & -1/Ce^{i\theta}-1/C_1e^{-i\theta}\\
+-1/C_1e^{-i\theta}-1/Ce^{i\theta} & -L\omega^2 + 1/C + 1/C_1\\
+\end{bmatrix}
+\begin{bmatrix}
+Q_{0_e}\\
+Q_{0_o}
+\end{bmatrix} = \begin{bmatrix}
+0\\
+0
+\end{bmatrix}$
+
+Which has solutions only if determinant is 0. This condition reduces to 
+
+$$\omega^4-2\omega^2 1/L$ + (1/C + 1/C_1) = 0$$
+
+which has solution
+
+$$\omega^2 = \frac{1}{L}\left(\frac{1}{C}+\frac{1}{C_1}\right)\pm\frac{1}{L}\sqrt{\left(\frac{1}{C}+\frac{1}{C_1}\right)^2 - \frac{4 \sin^2 \theta}{CC_1}}$$
+"""
+
+# ╔═╡ aca524c5-75db-4029-a25e-389d5206084f
+md"""
+### Plotting the dispersion relations
+"""
+
+# ╔═╡ 389430af-3a1c-400e-a66a-6976ae73566f
 begin
-	plot(diameters, [sooji_b, rice_b, mustard_b], xerr = [1], yerr = [1], label=["" "" "" "Sooji Before" "Rice Before" "Mustard Before"], legend=:topleft, st=[:scatter, :line], color=[:red :green :blue])
-	plot!(diameters, [sooji_a, rice_a, mustard_a], xerr = [1], yerr = [1], label=["" "" "" "Sooji After" "Rice After" "Mustard After"], legend=:topleft, st=[:scatter, :line], color=[:red :green :blue], linestyle=:dash, xlabel="Diameter of disk(mm)", ylabel="Height of Pile(mm)")
+	sliders = @bind vals PlutoUI.combine() do Child
+		md"""
+	L = $(Child("L", Slider(0:0.1:1, show_value=true, default=0.5)))\
+	C = $(Child("C", Slider(0:0.1:1, show_value=true, default=0.4)))\
+	C₁ = $(Child("C_1", Slider(0:0.1:1, show_value=true, default=0.8)))
+		"""
+	end
+	sliders
 end
 
-# ╔═╡ 6d3db50f-d409-46a3-93a5-63d6fd9fc145
-md"""
-## Results
+# ╔═╡ b8068076-bf20-48ff-b012-5d993757a9aa
+sliders
 
-From the above heights, we can calculate the angle of repose from the formula given in [Introduction](#87e93bf9-a530-4334-9cfa-57ec28915786).
-
-1. Diamater reported in mm
-2. All angles reported in degrees
-"""
-
-# ╔═╡ 7ab99b33-efa1-44f2-a4f4-4a0d0ed4b4ad
+# ╔═╡ 5a00db3f-6589-4dd2-ad7b-6c60dc2220c4
 begin
-	angles_a = map([sooji_a, rice_a, mustard_a]) do t
-		rad2deg.(atan.(t ./ diameters .*2 ));
-	end
-	angles_b = map([sooji_b, rice_b, mustard_b]) do t
-		rad2deg.(atan.(t ./ diameters .*2 ));
-	end
+	(;L, C, C_1) = vals;
+	optical(θ, L, C, C_1) = √(1/L*(1/C+1/C_1) + 1/L*√((1/C + 1/C_1)^2 - 4*(sin(θ))^2/(C*C_1)))
+	acoustic(θ, L, C, C_1) = √(1/L*(1/C+1/C_1) - 1/L*√((1/C + 1/C_1)^2 - 4*(sin(θ))^2/(C*C_1)))
 end;
 
-# ╔═╡ fb731cf2-a42e-4dfe-8a9e-2912c8a923b6
-pretty_table(HTML, hcat(diameters, angles_a..., angles_b...), header=["Diameters", "Sooji After", "Rice After", "Mustard After", "Sooji Before", "Rice Before", "Mustard Before"], header_alignment=:c, alignment=:c)
-
-# ╔═╡ f3cfdecd-9242-4a13-9d4c-f3516f9fbce8
-md"""
-## Error Analysis
-
-Since all variation in readings are within Least Count (1mm), that is assumed to be the error in Radius($r$) and Height($h$).
-
-From the functional form of the angle, we get 
-
-$$\Delta \theta = \frac{180}{\pi}\Delta \arctan (h/r) = \frac{180}{\pi}\sqrt{\left(\frac{\Delta h}{r}\cdot\frac{r^2}{h^2+r^2}\right)^2 + \left(\frac{h\Delta r}{r^2}\cdot\frac{r^2}{h^2+r^2}\right)^2}$$
-
-The $\frac{180}{\pi}$ term is to convert to degrees. $\Delta h = \Delta r = 1mm$. From this, we calculate the errors in $\theta$
-"""
-
-# ╔═╡ dc0b42fa-bf22-4e3f-a150-ef92dba9a166
-error(r, h) = 180/pi * √((1/r * r^2/(h^2+r^2))^2 + (h/r^2 * r^2/(h^2+r^2))^2)
-
-# ╔═╡ f899daf9-b733-488f-8b3e-2af3b693e262
+# ╔═╡ 616e5a62-16d5-40e6-a237-67adfa6f6838
 begin
-	e1s = map([sooji_a, rice_a, mustard_a]) do data
-		error.(data, diameters ./ 2 )
-	end
-	e2s = map([sooji_b, rice_b, mustard_b]) do data
-		error.(data, diameters ./ 2 )
-	end
-end;
-
-# ╔═╡ 02708d34-f713-4b61-853a-85e9255b267e
-pretty_table(HTML, hcat(diameters, e1s..., e2s...), header=["Diameters", "Sooji After", "Rice After", "Mustard After", "Sooji Before", "Rice Before", "Mustard Before"], header_alignment=:c, alignment=:c)
-
-# ╔═╡ b7c736eb-7669-4ca9-80b9-489dab2b6d3f
-begin
-	plot(diameters, angles_b, label=["" "" "" "Sooji Before" "Rice Before" "Mustard Before"], legend=:topleft, st=[:scatter, :line], color=[:red :green :blue], ylims=(0, 90), yerr=hcat(e1s...), xerr = [1], )
-	plot!(diameters, angles_a, label=["" "" "" "Sooji After" "Rice After" "Mustard After"], legend=:topleft, st=[:scatter, :line], color=[:red :green :blue], linestyle=:dash, ylims=(0, 90), xlabel="Diameter of disk(mm)", ylabel="angle of repose(°)", yerr=hcat(e2s...), xerr = [1], )
+	plot(x->monoatomic(x, L, C), -pi:0.01:pi, label="Dispersion Relation")
+	plot!(title="ω vs θ", xlabel="θ", ylabel="ω", legend=:bottomright)
 end
 
-# ╔═╡ 7d6a5584-bc2f-476f-a36b-8a8d7a6b5d95
+# ╔═╡ 4e8652f8-9b7f-4525-b311-60b11fe29a0b
+begin
+	plot(x->optical(x, L, C, C_1), -pi/2:0.01:pi/2, label="Optical")
+	plot!(x->acoustic(x, L, C, C_1), -pi/2:0.01:pi/2, label="Acoustic")
+	plot!(title="ω vs θ", xlabel="θ", ylabel="ω", legend=:bottomright)
+end
+
+# ╔═╡ 37605089-dc89-41c7-b75c-1751359f65f6
 md"""
-## Images
+## Analogues with the Mechanical System
+$$\begin{aligned}
+L &\iff m\\
+1/C &\iff k\\
+ka &\iff \theta
+\end{aligned}$$
 """
 
-# ╔═╡ 9b1572bb-5599-49de-ad87-d0228378b6ba
+# ╔═╡ 3c9fc6e9-b931-4144-b7a1-c967fb840ed1
 md"""
-$(LocalResource("./setup.jpeg", "width"=>"32%"))
-$(LocalResource("./rice.jpeg", "width"=>"32%"))
-$(LocalResource("./mustard.jpeg", "width"=>"32%"))
+# Observations
+From the data provided, we can plot the experimental and expected dipersion graphs.
+
+## Monoatomic chain
 """
 
-# ╔═╡ 73659194-9527-467c-b4c8-80de361e6cff
+# ╔═╡ 4a61138f-fc34-4121-aec3-b6ec25a9200f
+begin
+	ps = [90, 180, 270, 360, 450, 540, 630, 720, 810, 900, 990, 1080, 1170, 1260, 1350]./10
+	mono_exp = [3.739, 7.487, 11.29, 15.083, 18.941, 22.532, 26.023, 29.320, 32.550, 35.315, 37.837, 40.465, 42.401, 43.929, 45.255]
+	plot(ps, mono_exp, st=:scatter, label="data")
+	plot!(ps, monoatomic.(deg2rad.(ps), 1e-3, 0.04e-6)/2π/1000, label="theoretical")
+	plot!(title="ν vs θ", xlabel="θ", ylabel="ν(kHz)", legend=:bottomright)
+end
+
+# ╔═╡ 7ac7df62-cba1-49a9-82dd-841a8a58c916
 md"""
-## Video
+## Diatomic Chain
 """
 
-# ╔═╡ c0781fdf-040b-4134-8527-d737b8e47584
-html"""<iframe width="100%" height="420px" src="https://www.youtube.com/embed/7H1UjKueBiU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>"""
-
-# ╔═╡ 89dc20e5-b172-43b9-a7ff-1ead5e2b3f9a
-md"""
-## Comments
-
-1. Interestingly, the angle of repose barely changes with disk diameter.
-2. As expected, Sooji having smallest grain size has a high angle of repose whereas mustard being spherical and larger has a low angle of repose.
-
-"""
-
-# ╔═╡ d02e6e67-7b2e-41f3-b1a7-012c8b401501
-md"""
-# Observations - With underlying structure
-
-These readings were not particularly interesting. For both, a cone with higher angle and a cone with lower angle, the angle of repose is the same. This seems obvious as for the upper layer, only the layer immediately under it matters. For cases where the angle is so high that there is only a single layer of "sand", a pile does not even form.
-
-The only exception to this is when the underlying surface is sticky, for example tape, which allows for the grains to stay on the slope. This suggests that the friction between the surface and the grains is more important than the angle of the surface, since the effective angle of repose still remains the same.
-"""
-
-# ╔═╡ 02b87693-e58b-492f-b82c-808173f42c68
-pretty_table(HTML,[
-	27 18 rad2deg(atan(18/27)) 8 15.5 rad2deg(atan(8/15.5));
-	27 17 rad2deg(atan(17/27)) 17 20 rad2deg(atan(17/20));
-], header=["R pile", "h pile", "θ", "R cone", "h cone", "slope cone"], alignment=:c, header_alignment=:c)
-
-# ╔═╡ 900923db-67e2-43a2-a2c9-2dfc6dbdef67
-md"""
-## Video
-"""
-
-# ╔═╡ 97d99dbc-d56b-4892-99b9-d1c4d17494fe
-html"""<iframe width="100%" height="420px" src="https://www.youtube.com/embed/UDsZmkC39pE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>"""
-
-# ╔═╡ 42da79dc-daac-4fa1-a593-887e8bb82f11
-md"""
-# References
-1. Julia Programming Language
-2. Pluto Notebooks
-3. Plots.jl
-"""
+# ╔═╡ 0e9aebcc-4fdc-4147-9d15-7044f51f9cfb
+begin
+	aps, ops = ps[1:9], ps[10:end]
+	aex = [2.654, 5.134, 8.097, 10.372, 13.028, 15.090, 16.951, 18.314, 23.558]
+	oex = [34.495, 35.128, 35.836, 36.828]
+	plot(aps, aex, st=:scatter, label="data, acoustic")
+	plot!(aps, acoustic.(deg2rad.(aps), 1e-3, 0.04e-6, 0.147e-6)./(2pi)./1000, label="theoretical, acoustic")
+	plot!(ops[2:end-1], oex, st=:scatter, label="data, optical")
+	plot!(ops, optical.(deg2rad.(ops), 1e-3, 0.04e-6, 0.147e-6)./(2pi)./1000, label="theoretical, optical")
+	plot!(title="ν vs θ", xlabel="θ", ylabel="ν(kHz)", legend=:bottomright)
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 
 [compat]
-Plots = "~1.25.7"
-PlutoUI = "~0.7.32"
-PrettyTables = "~1.3.1"
+HypertextLiteral = "~0.9.3"
+Plots = "~1.25.10"
+PlutoUI = "~0.7.34"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -295,9 +333,9 @@ version = "1.16.1+1"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "54fc4400de6e5c3e27be6047da2ef6ba355511f8"
+git-tree-sha1 = "7dd38532a1115a215de51775f9891f0f3e1bac6a"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "1.11.6"
+version = "1.12.1"
 
 [[deps.ChangesOfVariables]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
@@ -307,9 +345,9 @@ version = "0.1.2"
 
 [[deps.ColorSchemes]]
 deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Random"]
-git-tree-sha1 = "6b6f04f93710c71550ec7e16b650c1b9a612d0b6"
+git-tree-sha1 = "12fc73e5e0af68ad3137b886e3f7c1eacfca2640"
 uuid = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
-version = "3.16.0"
+version = "3.17.1"
 
 [[deps.ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
@@ -338,11 +376,6 @@ deps = ["StaticArrays"]
 git-tree-sha1 = "9f02045d934dc030edad45944ea80dbd1f0ebea7"
 uuid = "d38c429a-6771-53c6-b99e-75d170b6e991"
 version = "0.5.7"
-
-[[deps.Crayons]]
-git-tree-sha1 = "249fe38abf76d48563e2f4556bebd215aa317e15"
-uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
-version = "4.1.1"
 
 [[deps.DataAPI]]
 git-tree-sha1 = "cc70b17275652eb47bc9e5f81635981f13cea5c8"
@@ -390,9 +423,9 @@ version = "2.2.3+0"
 
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "b3bfd02e98aedfa5cf885665493c5598c350cd2f"
+git-tree-sha1 = "ae13fcbc7ab8f16b0856729b050ef0c446aa3492"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
-version = "2.2.10+0"
+version = "2.4.4+0"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]
@@ -438,21 +471,21 @@ version = "1.0.10+0"
 
 [[deps.GLFW_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libglvnd_jll", "Pkg", "Xorg_libXcursor_jll", "Xorg_libXi_jll", "Xorg_libXinerama_jll", "Xorg_libXrandr_jll"]
-git-tree-sha1 = "0c603255764a1fa0b61752d2bec14cfbd18f7fe8"
+git-tree-sha1 = "51d2dfe8e590fbd74e7a842cf6d13d8a2f45dc01"
 uuid = "0656b61e-2033-5cc2-a64a-77c0f6c09b89"
-version = "3.3.5+1"
+version = "3.3.6+0"
 
 [[deps.GR]]
 deps = ["Base64", "DelimitedFiles", "GR_jll", "HTTP", "JSON", "Libdl", "LinearAlgebra", "Pkg", "Printf", "Random", "RelocatableFolders", "Serialization", "Sockets", "Test", "UUIDs"]
-git-tree-sha1 = "4a740db447aae0fbeb3ee730de1afbb14ac798a1"
+git-tree-sha1 = "9f836fb62492f4b0f0d3b06f55983f2704ed0883"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
-version = "0.63.1"
+version = "0.64.0"
 
 [[deps.GR_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Cairo_jll", "FFMPEG_jll", "Fontconfig_jll", "GLFW_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pixman_jll", "Pkg", "Qt5Base_jll", "Zlib_jll", "libpng_jll"]
-git-tree-sha1 = "aa22e1ee9e722f1da183eb33370df4c1aeb6c2cd"
+git-tree-sha1 = "a6c850d77ad5118ad3be4bd188919ce97fffac47"
 uuid = "d2c73de3-f751-5644-a686-071e5b155ba9"
-version = "0.63.1+0"
+version = "0.64.0+0"
 
 [[deps.GeometryBasics]]
 deps = ["EarCut_jll", "IterTools", "LinearAlgebra", "StaticArrays", "StructArrays", "Tables"]
@@ -545,21 +578,21 @@ version = "1.0.0"
 
 [[deps.JLLWrappers]]
 deps = ["Preferences"]
-git-tree-sha1 = "22df5b96feef82434b07327e2d3c770a9b21e023"
+git-tree-sha1 = "abc9885a7ca2052a736a600f7fa66209f96506e1"
 uuid = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
-version = "1.4.0"
+version = "1.4.1"
 
 [[deps.JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
-git-tree-sha1 = "8076680b162ada2a031f707ac7b4953e30667a37"
+git-tree-sha1 = "3c837543ddb02250ef42f4738347454f95079d4e"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-version = "0.21.2"
+version = "0.21.3"
 
 [[deps.JpegTurbo_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "d735490ac75c5cb9f1b00d8b5509c11984dc6943"
+git-tree-sha1 = "b53380851c6e6664204efb2e62cd24fa5c47e4ba"
 uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
-version = "2.1.0+0"
+version = "2.1.2+0"
 
 [[deps.LAME_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -580,9 +613,9 @@ version = "1.3.0"
 
 [[deps.Latexify]]
 deps = ["Formatting", "InteractiveUtils", "LaTeXStrings", "MacroTools", "Markdown", "Printf", "Requires"]
-git-tree-sha1 = "a8f4f279b6fa3c3c4f1adadd78a621b13a506bce"
+git-tree-sha1 = "2a8650452c07a9c89e6a58f296fd638fadaca021"
 uuid = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
-version = "0.15.9"
+version = "0.15.11"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -702,9 +735,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[deps.NaNMath]]
-git-tree-sha1 = "f755f36b19a5116bb580de457cda0c140153f283"
+git-tree-sha1 = "b086b7ea07f8e38cf122f5016af580881ac914fe"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
-version = "0.3.6"
+version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -744,9 +777,9 @@ version = "8.44.0+0"
 
 [[deps.Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "92f91ba9e5941fc781fecf5494ac1da87bdac775"
+git-tree-sha1 = "13468f237353112a01b2d6b32f3d0f80219944aa"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.2.0"
+version = "2.2.2"
 
 [[deps.Pixman_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -772,27 +805,21 @@ version = "1.1.3"
 
 [[deps.Plots]]
 deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers", "GR", "GeometryBasics", "JSON", "Latexify", "LinearAlgebra", "Measures", "NaNMath", "PlotThemes", "PlotUtils", "Printf", "REPL", "Random", "RecipesBase", "RecipesPipeline", "Reexport", "Requires", "Scratch", "Showoff", "SparseArrays", "Statistics", "StatsBase", "UUIDs", "UnicodeFun", "Unzip"]
-git-tree-sha1 = "7e4920a7d4323b8ffc3db184580598450bde8a8e"
+git-tree-sha1 = "d9c49967b9948635152edaa6a91ca4f43be8d24c"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-version = "1.25.7"
+version = "1.25.10"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
-git-tree-sha1 = "ae6145ca68947569058866e443df69587acc1806"
+git-tree-sha1 = "8979e9802b4ac3d58c503a20f2824ad67f9074dd"
 uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-version = "0.7.32"
+version = "0.7.34"
 
 [[deps.Preferences]]
 deps = ["TOML"]
 git-tree-sha1 = "2cf929d64681236a2e074ffafb8d568733d2e6af"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
 version = "1.2.3"
-
-[[deps.PrettyTables]]
-deps = ["Crayons", "Formatting", "Markdown", "Reexport", "Tables"]
-git-tree-sha1 = "dfb54c4e414caa595a1f2ed759b160f5a3ddcba5"
-uuid = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
-version = "1.3.1"
 
 [[deps.Printf]]
 deps = ["Unicode"]
@@ -877,24 +904,25 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "2884859916598f974858ff01df7dfc6c708dd895"
+git-tree-sha1 = "95c6a5d0e8c69555842fc4a927fc485040ccc31c"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.3.3"
+version = "1.3.5"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[deps.StatsAPI]]
-git-tree-sha1 = "d88665adc9bcf45903013af0982e2fd05ae3d0a6"
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "c3d8ba7f3fa0625b062b82853a7d5229cb728b6b"
 uuid = "82ae8749-77ed-4fe6-ae5f-f523153014b0"
-version = "1.2.0"
+version = "1.2.1"
 
 [[deps.StatsBase]]
 deps = ["DataAPI", "DataStructures", "LinearAlgebra", "LogExpFunctions", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics", "StatsAPI"]
-git-tree-sha1 = "51383f2d367eb3b444c961d485c565e4c0cf4ba0"
+git-tree-sha1 = "8977b17906b0a1cc74ab2e3a05faa16cf08a8291"
 uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-version = "0.33.14"
+version = "0.33.16"
 
 [[deps.StructArrays]]
 deps = ["Adapt", "DataAPI", "StaticArrays", "Tables"]
@@ -1105,9 +1133,9 @@ uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "cc4bf3fdde8b7e3e9fa0351bdeedba1cf3b7f6e6"
+git-tree-sha1 = "e45044cd873ded54b6a5bac0eb5c971392cf1927"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
-version = "1.5.0+0"
+version = "1.5.2+0"
 
 [[deps.libass_jll]]
 deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "HarfBuzz_jll", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
@@ -1165,36 +1193,35 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═e7e048e1-d8fa-497e-9607-85f7230d54cc
-# ╠═0c0e0353-0e58-4ee4-9a94-614a9cd6d271
-# ╠═a4c0845e-7eb4-11ec-04c2-53b79fed85b9
-# ╠═1466c3d4-8f4b-495c-a82b-f3418cd46c9c
-# ╟─28aaa0f9-4f77-46bb-a6fe-265661bfa7ae
-# ╟─87e93bf9-a530-4334-9cfa-57ec28915786
-# ╟─99bbe997-bcab-40bc-b490-3927df0fc32c
-# ╟─596b51d1-5f7e-44f4-8b03-261b8ced4486
-# ╟─2b756fd7-8364-464b-89c7-1e7ccbc1d58e
-# ╟─7384d70c-3e01-4693-b892-34b1fb5610f1
-# ╟─b70d27ba-393d-41f8-a7bf-2b030d285c86
-# ╟─534ab8c7-e649-4057-ac4b-ae7e765cb3d6
-# ╟─38d14188-dd3e-4b80-bdc7-bc71d9d8c888
-# ╟─6d3db50f-d409-46a3-93a5-63d6fd9fc145
-# ╟─7ab99b33-efa1-44f2-a4f4-4a0d0ed4b4ad
-# ╟─fb731cf2-a42e-4dfe-8a9e-2912c8a923b6
-# ╟─f3cfdecd-9242-4a13-9d4c-f3516f9fbce8
-# ╠═dc0b42fa-bf22-4e3f-a150-ef92dba9a166
-# ╟─f899daf9-b733-488f-8b3e-2af3b693e262
-# ╟─02708d34-f713-4b61-853a-85e9255b267e
-# ╟─b7c736eb-7669-4ca9-80b9-489dab2b6d3f
-# ╟─7d6a5584-bc2f-476f-a36b-8a8d7a6b5d95
-# ╟─9b1572bb-5599-49de-ad87-d0228378b6ba
-# ╟─73659194-9527-467c-b4c8-80de361e6cff
-# ╟─c0781fdf-040b-4134-8527-d737b8e47584
-# ╟─89dc20e5-b172-43b9-a7ff-1ead5e2b3f9a
-# ╟─d02e6e67-7b2e-41f3-b1a7-012c8b401501
-# ╟─02b87693-e58b-492f-b82c-808173f42c68
-# ╟─900923db-67e2-43a2-a2c9-2dfc6dbdef67
-# ╟─97d99dbc-d56b-4892-99b9-d1c4d17494fe
-# ╟─42da79dc-daac-4fa1-a593-887e8bb82f11
+# ╟─f8007b46-90f3-11ec-3ac2-ad23e19cad09
+# ╟─5fbd97af-175b-4fc2-99c8-d5dbe7d81db6
+# ╟─5298d858-e68f-4208-9eaa-a81a91e2e555
+# ╟─6d6d5bb3-72ff-4aad-a433-152b071960c7
+# ╟─6b54dde7-8e54-4a15-8c78-b0062c006424
+# ╟─011d33b6-328b-4dc7-95e1-38f730352118
+# ╟─e0b5e28e-cdd1-4fa6-9573-6408b5143130
+# ╟─4a591144-8197-4fa8-b21b-fd19047e7827
+# ╟─336cf5b9-ad1b-403d-a008-37673b792121
+# ╟─b513b2b0-9356-4ba9-b4a0-b23e1c3b7db5
+# ╟─fd4d1b64-56b1-40c8-a079-4aebef3ee919
+# ╟─a931add1-2b7f-44ad-a504-476a26e4442d
+# ╟─1d9f9017-19ea-4741-9370-4ac7461139ab
+# ╟─b8068076-bf20-48ff-b012-5d993757a9aa
+# ╟─ec59de0c-0ec2-4451-8cc6-0fdc7435c70f
+# ╟─616e5a62-16d5-40e6-a237-67adfa6f6838
+# ╟─dde4b81d-99cd-4adf-a44f-ec00e35cb460
+# ╟─9ab8f3da-a182-482f-ab7e-0c1281804651
+# ╟─17557d64-bef9-4626-9362-fab98c5530dc
+# ╟─c1cfaf8f-0547-4a1f-879d-dda0f4e9fecb
+# ╟─b6215da1-e027-4c2a-a093-3e30041f4f5f
+# ╟─aca524c5-75db-4029-a25e-389d5206084f
+# ╟─389430af-3a1c-400e-a66a-6976ae73566f
+# ╟─5a00db3f-6589-4dd2-ad7b-6c60dc2220c4
+# ╟─4e8652f8-9b7f-4525-b311-60b11fe29a0b
+# ╟─37605089-dc89-41c7-b75c-1751359f65f6
+# ╟─3c9fc6e9-b931-4144-b7a1-c967fb840ed1
+# ╟─4a61138f-fc34-4121-aec3-b6ec25a9200f
+# ╟─7ac7df62-cba1-49a9-82dd-841a8a58c916
+# ╟─0e9aebcc-4fdc-4147-9d15-7044f51f9cfb
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
